@@ -10,7 +10,7 @@ external factors.
 
     virtualenv .venv
     . .venv/bin/activate
-    pip install mido
+    pip install -r requirements.txt
 
     sudo apt-get install libportmidi-dev fluidsynth fluid-soundfont-gm
 
