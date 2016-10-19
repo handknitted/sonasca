@@ -27,10 +27,12 @@ In another:
 
 ### Notes on usage
 
-note_adj_frequency represents the interval between notes that are changed,
-increasing it will result in fewer mangled notes
+SonascaPlayer accepts a mangle factor between 0 and 10.  0 means no mangling is
+done, 10 meaning every note is mangled excepting (on the example midi file) the
+rhythm track notes.
 
-note_adj_factor represents the maximum number of semitones that a note can be
-adjusted though the actual number is pseudo random up to this limit
+It's necessary to set the SonsacaPlayer instance up executing play() on a
+thread if it is required that the mangle factor be manipulated during playback.
+The player.py module has an example usage implemented if executed as __main__.
 
 
