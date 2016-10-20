@@ -29,8 +29,11 @@ class SonascaPlayer(object):
 
     def _process_notes(self, notes):
         for note in notes:
-                if note.channel != 9:
-                    self._mangle_note(note)
+            # channel 9 in mido is channel 10 in midi - rhythm
+            # we'll leave that alone because the results will
+            # not really be what we want
+            if note.channel != 9:
+                self._mangle_note(note)
 
     def _mangle_note(self, note):
         if note.type == 'note_on':
@@ -40,9 +43,12 @@ class SonascaPlayer(object):
                 note.note += random.randint(
                     0, self._note_adj_factor)
         if note.type == 'note_off':
-            orig_note_on = self._note_on_queue.get(
-                '%s,%s' % (note.channel, note.note))
-            note.note = orig_note_on.note
+            orig_note_on = self._note_on_queue.pop(
+                '%s,%s' % (note.channel, note.note), None)
+            if orig_note_on:
+                note.note = orig_note_on.note
+            else:
+                print 'Note off not matched: %s' % note
 
     def _should_muck(self):
         if self._mangle_enabled:
@@ -55,11 +61,11 @@ class SonascaPlayer(object):
     def play(self, filename):
 
         midifile = MidiFile(filename)
-        with mido.open_output(self._output_port) as output_to_synth:
+        with mido.open_output(self._output_port,
+                              autoreset=True) as output_to_synth:
             note_cache = []
             for message in midifile:
                 if not isinstance(message, MetaMessage):
-                    # if message.channel ==4:
                     note_cache.append(message)
                 if message.time > 0:
                     self._process_notes(note_cache)
@@ -82,7 +88,8 @@ if __name__ == '__main__':
 
     sonasca_player = SonascaPlayer(note_adj_factor=4, note_adj_frequency=10)
 
-    play_thread = threading.Thread(target=sonasca_player.play, args=('resources/tubthumping.mid',))
+    play_thread = threading.Thread(
+        target=sonasca_player.play, args=('resources/tubthumping.mid',))
     play_thread.start()
     for i in range(1, 11):
         print "i = %s" % i
